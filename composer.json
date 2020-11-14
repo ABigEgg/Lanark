@@ -1,0 +1,26 @@
+{
+    "name": "abigegg/lanark",
+    "description": "Client for Glasgow Libraries data",
+    "type": "library",
+    "require": {
+        "fabpot/goutte": "^4.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Lanark\\": "Lanark/"
+        }
+    },
+    "authors": [
+        {
+            "name": "David Hewitson",
+            "email": "david@abigegg.com"
+        }
+    ],
+    "scripts": {
+        "test": "./vendor/bin/phpunit --testdox --colors tests"
+    }
+}
