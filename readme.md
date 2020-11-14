@@ -9,7 +9,7 @@ It scrapes the library's Arena website (https://libcat.csglasgow.org/) and provi
 
 Require the library to your PHP project using Composer:
 
-`composer require abigegg\lanark`
+`composer require abigegg/lanark`
 
 You can use it in your code like this:
 
@@ -43,7 +43,10 @@ var_dump( $item );
 ## Stuff that works currently
 * `getItemByISBN('[ISBN]')` Get book details by ISBN (title, author, year of publication)
 
-## Future features
+## Changelog
+* 14 Nov 2020 - Initial v0.01 commit
+
+## Roadmap
 * Search
     * Search by book title and author (keywords)
     * Search by book year of publication
