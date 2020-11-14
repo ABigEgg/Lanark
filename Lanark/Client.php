@@ -1,11 +1,11 @@
 <?php 
 
-namespace Lanark;
-use Goutte\Client;
+namespace ABigEgg\Lanark;
+use Goutte\Client as GClient;
 
-use Lanark\Item;
+use ABigEgg\Lanark\Item;
 
-class Lanark {
+class Client {
     
     /**
      * base_endpoint
@@ -30,7 +30,7 @@ class Lanark {
     public function getItemByISBN( $isbn ) {
       
         // fetch the item from the Glasgow libraries system (Arena)
-        $client = new Client();
+        $client = new GClient();
         $url = str_replace( '[ITEM]', $isbn, $this->base_endpoint . $this->search_page );
 
         $crawl = $client->request( 'GET', $url );

@@ -1,15 +1,15 @@
 <?php 
 
-namespace Lanark\Tests;
+namespace ABigEgg\Lanark\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Lanark\Lanark;
-use Lanark\Item;
+use ABigEgg\Lanark\Client;
+use ABigEgg\Lanark\Item;
 
 
-class LanarkTest extends TestCase {
+class ClientTest extends TestCase {
     public function testCanGetItemByIsbn() {
-        $client = new Lanark();
+        $client = new Client();
 
         // The book we are testing with is 
         //
@@ -23,7 +23,7 @@ class LanarkTest extends TestCase {
     }
 
     public function testCannotGetItemByInvalidIsbn() {
-        $client = new Lanark();
+        $client = new Client();
         $item = $client->getItemByISBN("xq3tae9j");
 
         $this->assertFalse( $item );

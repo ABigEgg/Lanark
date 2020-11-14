@@ -1,6 +1,6 @@
 <?php 
 
-namespace Lanark;
+namespace ABigEgg\Lanark;
 
 class Item {
     
