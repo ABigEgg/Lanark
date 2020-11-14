@@ -25,7 +25,7 @@ class Client {
      * Get an item from the catalogue by its ISBN number
      *
      * @param  mixed $isbn
-     * @return void
+     * @return ABigEgg\Lanark\Item|false
      */
     public function getItemByISBN( $isbn ) {
       
@@ -60,6 +60,16 @@ class Client {
         $item->available = false;
 
         return $item;
+    }
+
+    /**
+     * Search the library for books containing given keywords
+     *
+     * @param  string $keywords
+     * @return void
+     */
+    public function search( $keywords ) {
+        return; 
     }
 
 }
