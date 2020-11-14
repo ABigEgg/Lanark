@@ -17,7 +17,7 @@ You can use it in your code like this:
 <?php 
 use ABigEgg\Lanark
 
-$client = new Lanark();
+$client = new Lanark\Client();
 
 // grab an item by its ISBN
 $item = $client->getItemByISBN("9781787300521");
@@ -44,7 +44,7 @@ var_dump( $item );
 * `getItemByISBN('[ISBN]')` Get book details by ISBN (title, author, year of publication)
 
 ## Changelog
-* 14 Nov 2020 - Initial v0.01 commit
+* 14 Nov 2020 - Initial 0.1.0 commit
 
 ## Roadmap
 * Search
