@@ -3,7 +3,8 @@
     "description": "Client for Glasgow Libraries data",
     "type": "library",
     "require": {
-        "fabpot/goutte": "^4.0"
+        "fabpot/goutte": "^4.0",
+        "chrome-php/chrome": "^0.8.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^9"

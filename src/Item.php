@@ -32,7 +32,7 @@ class Item {
      *
      * @var int
      */
-    public $available = null;
+    public $availability = null;
     
     /**
      * year
@@ -50,11 +50,19 @@ class Item {
     protected $is_loaded = false;
     
     /**
-     * availability_is_loaded
+     * fetch
      *
-     * @var bool
+     * @var mixed
      */
-    protected $availability_is_loaded = false;
+    protected $fetch = false;
+
+    protected $fields = [
+        'isbn',
+        'title',
+        'author',
+        'year',
+        'availability'
+    ];
         
     /**
      * Construct the Item object
@@ -83,42 +91,26 @@ class Item {
     public function isLoaded() {
         return $this->is_loaded;
     }
-    
-    /**
-     * Has this item's availability been pulled down from the API?
-     *
-     * @return void
-     */
-    public function availabilityIsLoaded() {
-        return $this->availability_is_loaded;
-    }
-    
-    /**
-     * Instance of the Fetch class which we will use to grab item info
-     *
-     * @var mixed
-     */
-    protected $fetch;
- 
+
     /**
      * Load the item data from the API
      *
      * @param  bool $with_availability Should we load the availability data too?
      * @return void
      */
-    public function load() {
+    public function load( $with_availability = true ) {
         if ( $this->is_loaded ) {
             return true;
         }
 
-        $fields = $this->fetch->itemFromISBN( $this->isbn );
+        $fields = $this->fetch->itemFromISBN( $this->isbn, true );
 
         if ( ! is_array( $fields ) ) {
             return false; // it doesnae work!
         }
 
         foreach ( $fields as $key => $value ) {
-            if ( property_exists( $this, $key ) ) {
+            if ( in_array( $key, $this->fields ) ) {
                 $this->$key = $value;
             }
         }
@@ -126,28 +118,6 @@ class Item {
         $this->is_loaded = true;
 
         return $this;
-    }
-    
-    /**
-     * Load the item's availability from the Glasgow Libraries API
-     *
-     * @return void
-     */
-    public function loadAvailability() {
-        if ( $this->availability_is_loaded ) {
-            return $this;
-        }
-
-        // return $this->fetch->itemAvailability();
-    }
-    
-    /**
-     * Fluency alias of loadAvailability() to allow us to chain methods to get item availability
-     *
-     * @return void
-     */
-    public function withAvailability() {
-        // return $this->loadAvailability();
     }
 
 }

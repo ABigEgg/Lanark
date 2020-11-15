@@ -1,9 +1,8 @@
 <?php 
 
 namespace ABigEgg\Lanark;
-use Goutte\Client as GClient;
-use Symfony\Component\BrowserKit\Cookie;
-use Symfony\Component\BrowserKit\CookieJar;
+use HeadlessChromium\BrowserFactory;
+
 
 /**
  * Fetch class, to grab items from the library
@@ -54,15 +53,36 @@ class Fetch {
     ];
     
     /**
-     * Gautte client
+     * Browser to use
      *
      * @var mixed
      */
-    protected $client;
+    protected $browser;
 
-    function __construct()
-    {
-        $this->client = new GClient();
+    function __construct() {
+        $this->browser = $this->getBrowser();
+    }
+    
+    /**
+     * Get the browser instance, so we can re-use the same browser across requests
+     *
+     * @return void
+     */
+    private function getBrowser() {
+        global $lanark_browser;
+        global $lanark_chrome_location;
+
+        $browser_factory = new BrowserFactory( $lanark_chrome_location );
+
+        if ( ! isset( $lanark_browser ) ) {
+            $lanark_browser = $browser_factory->createBrowser( [
+                'headless' => true,
+                'sendSyncDefaultTimeout' => 6000,
+                'userAgent' => 'Mozilla/5.0 (compatible; Lanark; +https://github.com/abigegg/lanark)'
+            ] );
+        }
+
+        return $lanark_browser;
     }
         
     /**
@@ -73,35 +93,87 @@ class Fetch {
      * @return array|false
      */
     public function itemFromISBN( $isbn, $with_availability = false ) {
-        // fetch the item from the Glasgow libraries system (Arena)
-        $url = str_replace( '[ITEM]', $isbn, $this->base_endpoint . $this->search_page );
+        $page = $this->browser->createPage();
+        $start = microtime();
+        
+        $url = str_replace( '[ITEM]', $isbn, $this->base_endpoint . $this->search_page );   
 
-        $crawl = $this->client->request( 'GET', $url );
+        // load the search results page 
+        $page->navigate( $url )->waitForNavigation();
+        
+        // load in jQuery
+        
+        $field_keys = "['" . implode( "','", $this->item_fields ) . "']";
 
-        $item_list = $crawl->filter( '.arena-record-details' );
+        $output = $page->evaluate("
+        (function() {
+            var first_item = $('.arena-record').first();
+            var fields = $field_keys;
 
-        if ( count( $item_list ) == 0 ) {
-            return false; // no such item
+            var i;
+            var out = {};
+
+            for ( i in fields ) {
+                var key = fields[i];
+                out[key] = first_item.find('.arena-record-' + key + ' span').last().text();
+            }
+
+            out['item_page_url'] = first_item.find('.arena-record-title > a').attr('href');
+
+            return out;
+        })();
+        ")->getReturnValue();
+
+        if ( ! $output || $output['isbn'] !== $isbn ) {
+            return false;
         }
 
-        $first_item = $item_list->first();
-
-        $output = [];
-
-        foreach ( $this->item_fields as $key ) {
-            $output[$key] = $first_item->filter( '.arena-record-' . $key . ' span' )
-                ->last()
-                ->text();
+        if ( ! $with_availability ) {
+            $page->close();
+            $end = microtime();
+            $output['time'] = $end - $start;
+            return $output;
         }
 
-        if ( $with_availability || 1 ) {
-            $single_item_url = $first_item->filter( '.arena-record-title a' )
-                ->first()
-                ->attr('href');
+        // navigate to the item page so we can check availability
+        $page->navigate( $output['item_page_url'] )->waitForNavigation();
 
+        $found_availability = false;
 
-            $this->getItemAvailability( $single_item_url );
+        // wait for the stupid ajax thing to load so we can grab availability...
+        $remaining_attempts = 5;
+        while ( ! $found_availability ) {
+            $result = $page->evaluate("
+            (function() {
+                if( ! $('.arena-holding-link').length ) {
+                    console.log( $('.arena-holding-link').length );
+                    return 'wait';
+                }
+
+                return $('.availableForLoan').length;
+            })();
+            ")->getReturnValue();
+
+            if ( is_numeric( $result ) ) {
+                $found_availability = true;
+                $availability = $result;
+            }
+
+            $remaining_attempts--;
+
+            if ( ! $remaining_attempts ) {
+                $availability = null;
+                break;
+            }
+
+            sleep(1);
         }
+
+        $output['availability'] = $availability;
+        
+        $end = microtime();
+        $output['time'] = $end - $start;
+        $page->close();
 
         return $output;
     }
@@ -114,31 +186,35 @@ class Fetch {
      */
     private function getItemAvailability( $single_item_url ) {
         // load the item page so the correct cookie gets set
-        $crawl = $this->client->request( 'GET', $single_item_url );
+        // $crawl = $this->client->request( 'GET', $single_item_url );
 
-        $headers = [
-            'Accept' => 'text/xml', 
-            'Wicket-Ajax' => true,
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ];
+        // $headers = [
+        //     'Accept' => 'text/xml', 
+        //     'Wicket-Ajax' => true,
+        //     'Content-Type' => 'application/x-www-form-urlencoded',
+        // ];
 
-        // gautte is a bit fiddly with Post requests - info here: https://stackoverflow.com/posts/33822001/revisions
-        $postdata = [
-            'p_p_id=crDetailWicket_WAR_arenaportlet',
-            'p_p_lifecycle=2',
-            'p_p_state=normal',
-            'p_p_mode=view',
-            'p_p_resource_id=/crDetailWicket/?wicket:interface=:3:recordPanel:holdingsPanel::IBehaviorListener:0:',
-            'p_p_cacheability=cacheLevelPage',
-        ];
+        // // gautte is a bit fiddly with Post requests - info here: https://stackoverflow.com/posts/33822001/revisions
+        // $postdata = [
+        //     'p_p_id=crDetailWicket_WAR_arenaportlet',
+        //     'p_p_lifecycle=2',
+        //     'p_p_state=normal',
+        //     'p_p_mode=view',
+        //     'p_p_resource_id=/crDetailWicket/?wicket:interface=:3:recordPanel:holdingsPanel::IBehaviorListener:0:',
+        //     'p_p_cacheability=cacheLevelPage',
+        // ];
 
-        $content = implode( '&', $postdata );
+        // $jar = $this->client->getCookieJar();
 
-        $url = $this->base_endpoint . $this->availability_container . '?random=' . mt_rand() / mt_getrandmax();
+        // $jar->set( new Cookie( 'JSESSIONID', 'C74693048B0C9217E3821CF60D9BD11E' ) );
 
-        $crawl = $this->client->request( 'POST', $url, [], [], $headers, $content );
+        // $content = implode( '&', $postdata );
 
-        var_dump( $crawl->getHeaders() );
+        // $url = $this->base_endpoint . $this->availability_container . '?random=' . mt_rand() / mt_getrandmax();
+
+        // $crawl = $this->client->request( 'POST', $url, [], [], $headers, $content );
+
+        // var_dump( $crawl->html() );
     }
 
 }

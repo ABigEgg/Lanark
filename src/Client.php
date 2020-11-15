@@ -7,22 +7,27 @@ use ABigEgg\Lanark\Item;
 class Client {
     
     /**
+     * Set up the class
+     *
+     * @param  mixed $chrome_location The location of the Chrome binary
+     * @return void
+     */
+    function __construct( $chrome_location ) {
+        global $lanark_chrome_location;
+        $lanark_chrome_location = $chrome_location;
+    }
+    
+    /**
      * Get an item from the catalogue by its ISBN number
      *
      * @param  mixed $isbn
      * @return ABigEgg\Lanark\Item|false
      */
-    public static function getItemByISBN( $isbn ) {
+    public function getItemByISBN( $isbn, $with_availability = true ) {
         $item = new Item( $isbn );
 
-        return $item->load();
+        return $item->load(true);
     }
-
-    // public function 
-
-    // public function getAllBooks( $page ) {
-
-    // }
 
     /**
      * Search the library for books containing given keywords
