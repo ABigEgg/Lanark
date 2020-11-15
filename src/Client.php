@@ -12,7 +12,7 @@ class Client {
      * @param  mixed $chrome_location The location of the Chrome binary
      * @return void
      */
-    function __construct( $chrome_location ) {
+    function __construct( $chrome_location = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' ) {
         global $lanark_chrome_location;
         $lanark_chrome_location = $chrome_location;
     }

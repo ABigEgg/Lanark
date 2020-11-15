@@ -6,9 +6,9 @@ use PHPUnit\Framework\TestCase;
 use ABigEgg\Lanark\Client;
 use ABigEgg\Lanark\Item;
 
-
 class ClientTest extends TestCase {
     public function testCanGetItemByIsbn() {
+    
         $client = new Client();
 
         // The book we are testing with is 
