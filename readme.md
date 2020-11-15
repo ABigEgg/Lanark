@@ -1,58 +1,63 @@
 Lanark
 ======
 
-Lanark is a PHP library for pulling data from the Glasgow Libraries catalogue. 
+Lanark is a PHP library for pulling data from the Glasgow Libraries catalogue.
 
-It scrapes the library's Arena website (https://libcat.csglasgow.org/) and provides a simple interface to work with it programmatically.
+It uses headless Chrome to scrape the library's Arena website (https://libcat.csglasgow.org/) and provides a (very very) simple interface to work with it programmatically.
 
-## Usage
+# Requirements
 
-Require the library to your PHP project using Composer:
+* PHP 7
+* Chrome, installed on the server ([see the Chrome-PHP docs](https://github.com/chrome-php/headless-chromium-php))
 
-`composer require abigegg/lanark`
 
-You can use it in your code like this:
+# Usage
 
+Install with composer:
 ```
+composer require abigegg/lanark
+```
+
+Use it like this:
+
+```php
 <?php 
-use ABigEgg\Lanark
+require( 'vendor/autoload.php' ); 
 
-$client = new Lanark\Client();
+use ABigEgg\Lanark;
 
-// grab an item by its ISBN
-$item = $client->getItemByISBN("9781787300521");
+// Pass the the path to your Chrome binary into the constructor
+$client = new Lanark\Client( '/bin/chrome' );
 
-var_dump( $item );
+// Now we can grab a book by its ISBN
+$book = $client->getItemByISBN( '9781782117148' );
 
-// object(Lanark\Item)#21 (5) {
-//     ["title"]=>
-//     string(30) "Orwell on truth, George Orwell"
-//     ["author"]=>
-//     string(25) "Orwell, George, 1903-1950"
-//     ["isbn"]=>
-//     string(13) "9781787300521"
-//     ["available"]=>
-//     bool(false)
-//     ["year"]=>
-//     string(4) "2017"
-//   }
-}
+echo( $book->title ); // 'Lanark : a life in four books / Alasdair Gray'
+echo( $book->author ); // 'Gray, Alasdair, 1934-'
+echo( $book->year ); // '2016'
+echo( $book->availability ); // '1' (the number of copies available to borrow) 
+
+
+// That's it! (For now)
 ```
 
+# Changelog
+## [0.1.4] 15 Nov 2020
 
-## Stuff that works currently
-* `getItemByISBN('[ISBN]')` Get book details by ISBN (title, author, year of publication)
+* Replace Goutte with Chrome driver, now book availability information works!
 
-## Changelog
-* 14 Nov 2020 - Initial 0.1.0 commit
+## [0.1.0] 14 Nov 2020
 
-## Roadmap
+* Initial commit
+
+
+# Planned features
 * Search
     * Search by book title and author (keywords)
     * Search by book year of publication
     * Search by book genre
 * Books
-    * Show if book currently available for loan, and from which libraries
+    * ~~Show if book currently available for loan, and from which libraries~~
     * Get summary and thumbnail from Google Books, if available
     * (If authenticated) reserve a book to borrow it
 * Borrowing
