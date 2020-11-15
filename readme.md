@@ -37,7 +37,6 @@ echo( $book->author ); // 'Gray, Alasdair, 1934-'
 echo( $book->year ); // '2016'
 echo( $book->availability ); // '1' (the number of copies available to borrow) 
 
-
 // That's it! (For now)
 ```
 
@@ -63,3 +62,6 @@ echo( $book->availability ); // '1' (the number of copies available to borrow)
 * Borrowing
     * Authenticate with Glasgow Libraries user ID and PIN
     * Get a list of your current reservations, and when they are due back
+
+# License
+Licensed under the The MIT License
