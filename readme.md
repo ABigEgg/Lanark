@@ -92,7 +92,7 @@ var_dump( $books );
 // ...
 ```
 
-## Check item availability
+## Check if a book is available to borrow (and how many copies)
 
 ```php
 use ABigEgg\Lanark
