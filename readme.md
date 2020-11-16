@@ -22,7 +22,7 @@ composer require abigegg/lanark
 ## Get book by its ISBN
 
 ```php
-use ABigEgg\Lanark
+use ABigEgg\Lanark;
 
 $client = new Lanark\Client();
 
@@ -48,7 +48,7 @@ var_dump( $book );
 ## Search for books using keywords
 
 ```php  
-use ABigEgg\Lanark
+use ABigEgg\Lanark;
 
 $client = new Lanark\Client();
 
@@ -95,7 +95,7 @@ var_dump( $books );
 ## Check if a book is available to borrow (and how many copies)
 
 ```php
-use ABigEgg\Lanark
+use ABigEgg\Lanark;
 
 $client = new Lanark\Client();
 
