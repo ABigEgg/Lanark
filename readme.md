@@ -8,6 +8,7 @@ It uses headless Chrome to scrape the library's Arena website (https://libcat.cs
 # Requirements
 
 * PHP 7+
+* Composer
 * Chrome, installed on the server ([see the Chrome-PHP docs](https://github.com/chrome-php/headless-chromium-php))
 
 
@@ -26,7 +27,7 @@ use ABigEgg\Lanark
 $client = new Lanark\Client();
 
 // grab an item by its ISBN
-$book = $client->getItemByISBN("9781787300521");
+$book = $client->getItemByISBN('9781787300521');
 
 var_dump( $book );
 
@@ -107,18 +108,18 @@ var_dump( $book->getAvailability() );
 ```
 
 # Changelog
-## [0.1.4] 15 Nov 2020
-
-* Replace Goutte with Chrome driver, now book availability information works!
+## [0.1.5] 16 Nov 2020
 * Add keyword search with `$client->search( 'Keywords' )`
 * Pull in availability information just-in-time, to avoid unnecessary requests
 * Refactoring
 
+## [0.1.4] 15 Nov 2020
+
+* Replace Goutte with Chrome driver, now book availability information works!
+
 ## [0.1.0] 14 Nov 2020
 
 * Initial commit
->>>>>>> main
-
 
 # Planned features
 * Search
