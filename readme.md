@@ -1,28 +1,34 @@
 Lanark
 ======
 
-Lanark is a PHP library for pulling data from the Glasgow Libraries catalogue. 
+Lanark is a PHP library for pulling data from the Glasgow Libraries catalogue.
 
-It scrapes the library's Arena website (https://libcat.csglasgow.org/) and provides a simple interface to work with it programmatically.
+It uses headless Chrome to scrape the library's Arena website (https://libcat.csglasgow.org/) and provides a (very very) simple interface to work with it programmatically.
 
-## Usage
+# Requirements
 
-Require the library to your PHP project using Composer:
+* PHP 7+
+* Chrome, installed on the server ([see the Chrome-PHP docs](https://github.com/chrome-php/headless-chromium-php))
 
-`composer require abigegg/lanark`
 
-You can use it in your code like this:
+# Usage
 
+## Install with composer:
 ```
-<?php 
+composer require abigegg/lanark
+```
+
+## Get book by its ISBN
+
+```php
 use ABigEgg\Lanark
 
 $client = new Lanark\Client();
 
 // grab an item by its ISBN
-$item = $client->getItemByISBN("9781787300521");
+$book = $client->getItemByISBN("9781787300521");
 
-var_dump( $item );
+var_dump( $book );
 
 // object(Lanark\Item)#21 (5) {
 //     ["title"]=>
@@ -36,11 +42,19 @@ var_dump( $item );
 //     ["year"]=>
 //     string(4) "2017"
 //   }
+```
+
+## Search for books using keywords
+
+```php  
+use ABigEgg\Lanark
+
+$client = new Lanark\Client();
 
 // search for some items by keyword
-$items = $client->search('peppa pig');
+$books = $client->search('hitchhikers guide');
 
-var_dump( $items );
+var_dump( $books );
 
 // array(10) {
 //     [0]=>
@@ -75,22 +89,38 @@ var_dump( $items );
 //     }
 // }
 // ...
-
-// Check item availability (how many copies can be borrowed)
-
-var_dump( $items[0]->getAvailability() );
-// int(1)
 ```
 
+## Check item availability
 
-## Stuff that works currently
-* `getItemByISBN('[ISBN]')` Get book details by ISBN (title, author, year of publication)
-* 
-## Changelog
-* 14 Nov 2020 - Initial 0.1.0 commit
-* 15 Nov 2020 - 
+```php
+use ABigEgg\Lanark
 
-## Roadmap
+$client = new Lanark\Client();
+
+$book = $client->getItemByISBN("9781787300521");
+
+var_dump( $book->getAvailability() );
+
+// int(1)
+
+```
+
+# Changelog
+## [0.1.4] 15 Nov 2020
+
+* Replace Goutte with Chrome driver, now book availability information works!
+* Add keyword search with `$client->search( 'Keywords' )`
+* Pull in availability information just-in-time, to avoid unnecessary requests
+* Refactoring
+
+## [0.1.0] 14 Nov 2020
+
+* Initial commit
+>>>>>>> main
+
+
+# Planned features
 * Search
     * ~~Search by book title and author (keywords)~~
     * Search by book year of publication
@@ -102,3 +132,6 @@ var_dump( $items[0]->getAvailability() );
 * Borrowing
     * Authenticate with Glasgow Libraries user ID and PIN
     * Get a list of your current reservations, and when they are due back
+
+# License
+Licensed under the The MIT License
