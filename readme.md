@@ -38,8 +38,8 @@ var_dump( $book );
 //     string(25) "Orwell, George, 1903-1950"
 //     ["isbn"]=>
 //     string(13) "9781787300521"
-//     ["available"]=>
-//     bool(false)
+//     ["availability_count":protected]=>
+//     NULL
 //     ["year"]=>
 //     string(4) "2017"
 //   }
@@ -103,7 +103,7 @@ $book = $client->getItemByISBN("9781787300521");
 
 var_dump( $book->getAvailability() );
 
-// int(1)
+// int(2)
 
 ```
 
