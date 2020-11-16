@@ -29,10 +29,11 @@ class Item {
 
     /**
      * How many copies of this item are available?
+     * This is used internally and exposed via $item->availability (see __get() below)
      *
      * @var int
      */
-    public $availability = null;
+    protected $availability_count = null;
     
     /**
      * year
@@ -41,27 +42,24 @@ class Item {
      */
     public $year = null;
 
-        
     /**
-     * is_loaded
-     *
-     * @var bool
-     */
-    protected $is_loaded = false;
-    
-    /**
-     * fetch
+     * Item page URL
      *
      * @var mixed
      */
-    protected $fetch = false;
-
-    protected $fields = [
+    public $item_page_url = null;
+    
+    /**
+     * Fields we can grab from the library catalogue
+     *
+     * @var array
+     */
+    static public $fields = [
         'isbn',
         'title',
         'author',
         'year',
-        'availability'
+        'item_page_url'
     ];
         
     /**
@@ -78,44 +76,44 @@ class Item {
         $this->title = $title;
         $this->author = $author;
         $this->year = $year;
-
-        // set up our item fetcher class
-        $this->fetch = new Fetch();
     }
     
     /**
-     * Has this item been pulled down from the API, or is it just an empty item with an ISBN?
+     * Returns how many of this item are available to borrow
      *
-     * @return void
+     * @return int
      */
-    public function isLoaded() {
-        return $this->is_loaded;
+    public function getAvailability() {
+        if ( is_null( $this->availability_count ) ) {
+            $this->load( true );
+        }
+        
+        return $this->availability_count;
     }
 
     /**
      * Load the item data from the API
      *
-     * @param  bool $with_availability Should we load the availability data too?
+     * @param  bool $with_availability Should we load the availability data too? This takes longer as it requires an extra request
      * @return void
      */
-    public function load( $with_availability = true ) {
-        if ( $this->is_loaded ) {
-            return true;
-        }
+    public function load( $with_availability = false ) {
+        $fetch = Fetch::getInstance();
 
-        $fields = $this->fetch->itemFromISBN( $this->isbn, true );
+        $fields = $fetch->itemFromISBN( $this->isbn, $with_availability );
 
         if ( ! is_array( $fields ) ) {
             return false; // it doesnae work!
         }
 
+        $fields_to_grab = self::$fields;
+        $fields_to_grab[] = 'availability_count'; // we use this internally, it's not on the search result page
+
         foreach ( $fields as $key => $value ) {
-            if ( in_array( $key, $this->fields ) ) {
+            if ( in_array( $key, $fields_to_grab ) ) {
                 $this->$key = $value;
             }
         }
-
-        $this->is_loaded = true;
 
         return $this;
     }

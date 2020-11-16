@@ -2,9 +2,17 @@
 
 namespace ABigEgg\Lanark;
 
+use ABigEgg\Lanark\Fetch;
 use ABigEgg\Lanark\Item;
 
 class Client {
+    
+    /**
+     * fetch
+     *
+     * @var mixed
+     */
+    protected $fetch;
     
     /**
      * Set up the class
@@ -13,7 +21,7 @@ class Client {
      * @return void
      */
     function __construct( $chrome_location = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' ) {
-        global $lanark_chrome_location;
+        global $lanark_chrome_location; // this is smelly
         $lanark_chrome_location = $chrome_location;
     }
     
@@ -23,10 +31,10 @@ class Client {
      * @param  mixed $isbn
      * @return ABigEgg\Lanark\Item|false
      */
-    public function getItemByISBN( $isbn, $with_availability = true ) {
+    public function getItemByISBN( $isbn ) {
         $item = new Item( $isbn );
 
-        return $item->load(true);
+        return $item->load();
     }
 
     /**
@@ -36,7 +44,19 @@ class Client {
      * @return void
      */
     public function search( $keywords ) {
-        return; 
+        $fetch = Fetch::getInstance();
+        $items = $fetch->keywordSearch( $keywords );
+
+        if ( ! count( $items ) ) {
+            return [];
+        }
+
+        $out = [];
+        foreach ( $items as $item ) {
+            $out[] = new Item( $item['isbn'], $item['title'], $item['author'], $item['year'] );
+        }
+
+        return $out;
     }
 
 }

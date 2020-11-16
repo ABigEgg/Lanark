@@ -22,7 +22,7 @@ class Fetch {
      *
      * @var string
      */
-    protected $search_page = 'search?p_p_id=searchResult_WAR_arenaportlet&p_p_lifecycle=1&p_p_state=normal&p_r_p_arena_urn%3Aarena_facet_queries=&p_r_p_arena_urn%3Aarena_search_query=organisationId_index%3AAUK000048\|1+AND+number_index%3A[ITEM]&p_r_p_arena_urn%3Aarena_search_type=solr&p_r_p_arena_urn%3Aarena_sort_advice=field%3DRelevance%26direction%3DDescending';
+    protected $search_page = 'search?p_p_id=searchResult_WAR_arenaportlet&p_p_lifecycle=1&p_p_state=normal&p_r_p_arena_urn%3Aarena_facet_queries=&p_r_p_arena_urn%3Aarena_search_query=[QUERY]&p_r_p_arena_urn%3Aarena_search_type=solr&p_r_p_arena_urn%3Aarena_sort_advice=field%3DRelevance%26direction%3DDescending';
    
     /**
      * All books page
@@ -53,6 +53,13 @@ class Fetch {
     ];
     
     /**
+     * Hold the class instance for our wee singleton
+     *
+     * @var Fetch
+     */
+    static protected $instance = null;
+    
+    /**
      * Browser to use
      *
      * @var mixed
@@ -61,6 +68,31 @@ class Fetch {
 
     function __construct() {
         $this->browser = $this->getBrowser();
+    }
+    
+    /**
+     * getInstance
+     *
+     * @return object
+     */
+    static function getInstance() {
+        if ( isset( self::$instance ) ) {
+            return self::$instance;
+        }
+        self::$instance = new self();
+
+        return self::$instance;
+    }
+    
+    /**
+     * Helper function to get JavaScript array of fields we can grab
+     *
+     * @return void
+     */
+    private function getItemFieldArray() {
+        $item_fields = Item::$fields;
+
+        return "['" . implode( "','", $item_fields ) . "']";
     }
     
     /**
@@ -96,19 +128,18 @@ class Fetch {
         $page = $this->browser->createPage();
         $start = microtime();
         
-        $url = str_replace( '[ITEM]', $isbn, $this->base_endpoint . $this->search_page );   
+        $url = str_replace( '[QUERY]', 'organisationId_index%3AAUK000048\|1+AND+number_index%3A' . $isbn, $this->base_endpoint . $this->search_page );   
 
         // load the search results page 
         $page->navigate( $url )->waitForNavigation();
         
         // load in jQuery
-        
-        $field_keys = "['" . implode( "','", $this->item_fields ) . "']";
+        $fields = $this->getItemFieldArray();
 
         $output = $page->evaluate("
         (function() {
             var first_item = $('.arena-record').first();
-            var fields = $field_keys;
+            var fields = $fields;
 
             var i;
             var out = {};
@@ -169,7 +200,7 @@ class Fetch {
             sleep(1);
         }
 
-        $output['availability'] = $availability;
+        $output['availability_count'] = $availability;
         
         $end = microtime();
         $output['time'] = $end - $start;
@@ -177,44 +208,42 @@ class Fetch {
 
         return $output;
     }
-    
+        
     /**
-     * availability
+     * Search the library by given keywords and return the first page of results
      *
-     * @param  mixed $isbn
-     * @return void
+     * @param  mixed $keywords
+     * @return array
      */
-    private function getItemAvailability( $single_item_url ) {
-        // load the item page so the correct cookie gets set
-        // $crawl = $this->client->request( 'GET', $single_item_url );
+    public function keywordSearch( $keywords ) {
+        $page = $this->browser->createPage();
+        
+        $url = str_replace( '[QUERY]', $keywords, $this->base_endpoint . $this->search_page ); 
 
-        // $headers = [
-        //     'Accept' => 'text/xml', 
-        //     'Wicket-Ajax' => true,
-        //     'Content-Type' => 'application/x-www-form-urlencoded',
-        // ];
+        $fields = $this->getItemFieldArray();
 
-        // // gautte is a bit fiddly with Post requests - info here: https://stackoverflow.com/posts/33822001/revisions
-        // $postdata = [
-        //     'p_p_id=crDetailWicket_WAR_arenaportlet',
-        //     'p_p_lifecycle=2',
-        //     'p_p_state=normal',
-        //     'p_p_mode=view',
-        //     'p_p_resource_id=/crDetailWicket/?wicket:interface=:3:recordPanel:holdingsPanel::IBehaviorListener:0:',
-        //     'p_p_cacheability=cacheLevelPage',
-        // ];
+        // load the search results page 
+        $page->navigate( $url )->waitForNavigation();
 
-        // $jar = $this->client->getCookieJar();
+        return $page->evaluate("
+        (function() {
+            var items = document.querySelectorAll('.arena-library-record');
+            var fields = $fields;
+            var out = [];
 
-        // $jar->set( new Cookie( 'JSESSIONID', 'C74693048B0C9217E3821CF60D9BD11E' ) );
+            for ( item of items ) {
+                let item_out = {}
+                for ( key of fields ) {
+                    item_out[key] = $(item).find('.arena-record-' + key + ' span').last().text();
+                }
+                out.push(item_out);
+            }
 
-        // $content = implode( '&', $postdata );
+            return out;
+        })();
+        ")->getReturnValue();
 
-        // $url = $this->base_endpoint . $this->availability_container . '?random=' . mt_rand() / mt_getrandmax();
-
-        // $crawl = $this->client->request( 'POST', $url, [], [], $headers, $content );
-
-        // var_dump( $crawl->html() );
+        $page->close();
     }
 
 }

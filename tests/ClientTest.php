@@ -28,4 +28,25 @@ class ClientTest extends TestCase {
 
         $this->assertFalse( $item );
     }
+
+    public function testCanGetItemsBySearching() {
+        $client = new Client();
+        $items = $client->search('Orwell');
+
+        $this->assertStringContainsStringIgnoringCase( 'orwell', $items[0]->title );
+    }
+
+    public function testCanLoadItemAvailability() {
+        $client = new Client();
+        $items = $client->search('Chickens');
+
+        $this->assertIsNumeric( $items[0]->getAvailability() );
+    }
+
+    public function testCannotSearchForNonExistentItem() {
+        $client = new Client();
+        $items = $client->search('3qag9ake9kha');
+
+        $this->assertEmpty( $items );
+    }
 }
