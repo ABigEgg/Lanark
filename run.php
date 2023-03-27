@@ -1,9 +1,9 @@
-<?php 
+<?php
 require('vendor/autoload.php');
 
 use ABigEgg\Lanark\Client;
 
-$client = new Client( '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' );
+$client = new Client('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome');
 
 // $i = 0;
 // while( $i < 100 ) {
@@ -16,3 +16,4 @@ $client = new Client( '/Applications/Google Chrome.app/Contents/MacOS/Google Chr
 //     echo( ' took ' . ($end-$start) . " seconds \n\r" );
 // }
 
+var_dump($client->search('1984'));
